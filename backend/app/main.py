@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .bootstrap import ensure_admin
+from .bootstrap import ensure_admin, ensure_demo_accounts
 from .config import LANGUAGES, judge_label, judge_mode
 from .database import Base, SessionLocal, engine
 from .routers import admin, arena, auth, contest_reports, contests, dashboard, fairplay, organizations, problems, submissions, teams
@@ -23,6 +23,7 @@ async def lifespan(_app: FastAPI):
         seed_if_empty(db)
         ensure_seed_categories(db)
         ensure_admin(db)
+        ensure_demo_accounts(db)
     finally:
         db.close()
     yield

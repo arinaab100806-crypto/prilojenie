@@ -16,6 +16,7 @@ os.environ["JUDGE0_URL"] = ""
 os.environ["ADMIN_EMAIL"] = ""
 os.environ["ADMIN_PASSWORD"] = ""
 os.environ["ADMIN_USERNAME"] = ""
+os.environ["DEMO_ACCOUNTS"] = "0"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from fastapi.testclient import TestClient  # noqa: E402
