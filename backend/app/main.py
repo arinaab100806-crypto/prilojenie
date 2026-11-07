@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from .bootstrap import ensure_admin, ensure_demo_accounts
 from .config import LANGUAGES, judge_label, judge_mode
@@ -64,3 +67,29 @@ def health() -> dict[str, bool]:
 @app.get("/api/system", response_model=SystemOut)
 def system() -> SystemOut:
     return SystemOut(judge_mode=judge_mode(), judge_label=judge_label(), languages=list(LANGUAGES))
+
+
+def _static_dir() -> Path | None:
+    raw = os.getenv("STATIC_DIR", "").strip()
+    if not raw:
+        return None
+    path = Path(raw)
+    if path.is_dir() and (path / "index.html").is_file():
+        return path
+    return None
+
+
+_STATIC = _static_dir()
+if _STATIC is not None:
+
+    @app.get("/", include_in_schema=False)
+    def site_index() -> FileResponse:
+        return FileResponse(_STATIC / "index.html")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def site_files(full_path: str) -> FileResponse:
+        root = _STATIC.resolve()
+        candidate = (root / full_path).resolve()
+        if candidate.is_file() and (candidate == root or root in candidate.parents):
+            return FileResponse(candidate)
+        return FileResponse(root / "index.html")
